@@ -1,4 +1,4 @@
-# GhostSPN
+![](./.github/banner.png)
 
 <p align="center">
     List accounts with Service Principal Names (SPN) not linked to active dns records in an Active Directory Domain.
