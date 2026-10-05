@@ -134,7 +134,7 @@ class GhostSPNLookup(object):
         self.__wildcard_dns_cache = {}
         self.check_wildcard_dns()
 
-    def list_ghost_spns(self, request=False, sAMAccounName=None, servicePrincipalName=None):
+    def list_ghost_spns(self, request=False, sAMAccounName=None, servicePrincipalName=None, searchbase=None):
         print("[>] Searching for Ghost SPNs ...")
 
         ldap_query = "(&(servicePrincipalName=*))"
@@ -145,7 +145,8 @@ class GhostSPNLookup(object):
             auth_username=self.auth_username,
             auth_password=self.auth_password,
             auth_hashes=self.auth_hashes,
-            attributes=["sAMAccountName", "servicePrincipalName", "userPrincipalName", "userAccountControl", "distinguishedName"]
+            attributes=["sAMAccountName", "servicePrincipalName", "userPrincipalName", "userAccountControl", "distinguishedName"],
+            searchbase=searchbase
         )
 
         if len(results) != 0:
@@ -192,6 +193,10 @@ class GhostSPNLookup(object):
 
     def __print_dn_with_properties(self, dn, uac):
         disabled, delegation = "", ""
+
+        if isinstance(uac, (list, tuple)):
+            uac = uac[0] if len(uac) != 0 else 0
+        uac = int(uac)
 
         if (uac & UF_ACCOUNTDISABLE) == UF_ACCOUNTDISABLE:
             disabled = "(\x1b[94;1maccount disabled\x1b[0m)"
@@ -419,6 +424,7 @@ def parseArgs():
     mode_scan_target = mode_scan.add_argument_group("Target")
     mode_scan_target.add_argument("-tu", "--target-username", default=None, required=None, help="Target username to request TGS for.")
     mode_scan_target.add_argument("-ts", "--target-spn", default=None, required=None, help="Target Ghost SPN to request TGS for.")
+    mode_scan_target.add_argument("--base", default=None, metavar="DN", help="Search base distinguished name (DN) to limit the LDAP search scope. (default: domain root)")
 
     # Creating the "request" subparser ==============================================================================================================
     mode_request = argparse.ArgumentParser(add_help=False)
@@ -441,6 +447,7 @@ def parseArgs():
     mode_request_target = mode_request.add_argument_group("Target")
     mode_request_target.add_argument("-tu", "--target-username", default=None, required=None, help="Target username to request TGS for.")
     mode_request_target.add_argument("-ts", "--target-spn", default=None, required=None, help="Target Ghost SPN to request TGS for.")
+    mode_request_target.add_argument("--base", default=None, metavar="DN", help="Search base distinguished name (DN) to limit the LDAP search scope. (default: domain root)")
 
     # Adding the subparsers to the base parser
     subparsers = parser.add_subparsers(help="Mode", dest="mode", required=True)
@@ -466,7 +473,8 @@ if __name__ == '__main__':
 
         g.list_ghost_spns(
             sAMAccounName=options.target_username,
-            servicePrincipalName=options.target_spn
+            servicePrincipalName=options.target_spn,
+            searchbase=options.base
         )
 
     elif options.mode == "request":
@@ -485,5 +493,6 @@ if __name__ == '__main__':
         g.list_ghost_spns(
             request=True,
             sAMAccounName=options.target_username,
-            servicePrincipalName=options.target_spn
+            servicePrincipalName=options.target_spn,
+            searchbase=options.base
         )
