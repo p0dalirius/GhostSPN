@@ -211,6 +211,13 @@ class GhostSPNLookup(object):
     def is_ghost_spn(self, userdata, spn):
         spn_data = parse_spn(spn)
 
+        # Malformed SPN: parse_spn() could not extract a hostname (e.g. the value
+        # does not match the "serviceclass/hostname" format). Without a hostname
+        # there is nothing to resolve in DNS, so it cannot be a ghost SPN. Treat it
+        # as resolvable to avoid both a crash and a false positive.
+        if spn_data["hostname"] is None:
+            return True, False
+
         # Relative name
         if "." not in spn_data["hostname"]:
             # Extract domain from distinguishedName
