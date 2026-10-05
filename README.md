@@ -38,6 +38,13 @@ Credentials:
   --ldaps               Use LDAPS. (default: False)
   -v, --verbose         Verbose mode. (default: False)
   --debug               Debug mode. (default: False)
+
+Target:
+  -tu TARGET_USERNAME, --target-username TARGET_USERNAME
+                        Target username to request TGS for.
+  -ts TARGET_SPN, --target-spn TARGET_SPN
+                        Target Ghost SPN to request TGS for.
+  --base DN             Search base distinguished name (DN) to limit the LDAP search scope. (default: domain root)
 ```
 
 ## Example
